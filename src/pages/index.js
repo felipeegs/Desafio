@@ -36,9 +36,10 @@ export default function Home() {
   const [address, setAddress] = useState(null);
   const [error, setError] = useState(null);
   const [searchHistory, setSearchHistory] = useState([]);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
   useEffect(() => {
-    deleteCookie("searchHistory");
+    deleteCookie("searchHis")
     const history = JSON.parse(getCookie("searchHistory") || "[]");
     setSearchHistory(history);
   }, []);
@@ -68,61 +69,99 @@ export default function Home() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center px-6 py-8">
-      <div className="bg-white shadow-lg rounded-lg p-8 max-w-xl w-full sm:w-11/12 md:w-3/4 lg:w-1/2 xl:w-1/3">
-        <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800 mb-6 text-center">Procurar Informações do CEP</h1>
+  const handleSort = (key) => {
+    setSortConfig((prevConfig) => {
+      if (prevConfig.key === key) {
+        return { key, direction: prevConfig.direction === "asc" ? "desc" : "asc" };
+      }
+      return { key, direction: "asc" };
+    });
+  };
 
-        <div className="flex flex-col gap-6">
+  const sortedHistory = [...searchHistory].sort((a, b) => {
+    if (sortConfig.key) {
+      const valueA = a[sortConfig.key];
+      const valueB = b[sortConfig.key];
+      if (valueA < valueB) return sortConfig.direction === "asc" ? -1 : 1;
+      if (valueA > valueB) return sortConfig.direction === "asc" ? 1 : -1;
+    }
+    return 0;
+  });
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-200 flex items-center justify-center py-10 px-4">
+      <div className="bg-white shadow-md rounded-lg p-6 w-full max-w-3xl">
+        <h1 className="text-2xl font-bold text-blue-700 text-center mb-6">
+          Consulta de CEP
+        </h1>
+        <div className="mb-6">
           <input
             type="text"
             value={cep}
             onChange={(e) => setCep(e.target.value.replace(/\D/g, "").slice(0, 8))}
-            placeholder="Digite o CEP"
-            className="w-full p-4 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base sm:text-lg placeholder-gray-500"
+            placeholder="Digite o CEP (8 dígitos)"
+            className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 text-gray-700"
           />
           <button
             onClick={handleSearch}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium text-lg hover:bg-blue-700 transition-colors"
+            className="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition"
           >
             Buscar
           </button>
         </div>
-
-        {error && <p className="mt-4 text-center text-red-600 font-medium text-sm">{error}</p>}
-
+        {error && <p className="text-red-600 text-sm text-center mb-4">{error}</p>}
         {address && (
-          <div className="mt-8 bg-gray-50 p-6 rounded-lg border border-gray-300 text-base sm:text-lg">
-            <p className="text-gray-700 mb-2"><strong>CEP:</strong> {address.cep}</p>
-            <p className="text-gray-700 mb-2"><strong>Cidade:</strong> {address.location || "Não foi localizado"}</p>
-            <p className="text-gray-700 mb-2"><strong>Estado:</strong> {address.localState || "Não foi localizado"}</p>
-            <p className="text-gray-700 mb-2"><strong>Temperatura:</strong> {Math.round(address.temp) || "Não foi localizado"}°C</p>
-            <p className="text-gray-700"><strong>Data da pesquisa:</strong> {address.brFormat || "Não foi localizado"}</p>
+          <div className="p-4 border rounded-lg bg-gray-50">
+            <p><strong>CEP:</strong> {address.cep}</p>
+            <p><strong>Cidade:</strong> {address.location || "Não localizado"}</p>
+            <p><strong>Estado:</strong> {address.localState || "Não localizado"}</p>
+            <p><strong>Temperatura:</strong> {Math.round(address.temp) || "N/A"}°C</p>
+            <p><strong>Data da pesquisa:</strong> {address.brFormat || "Não disponível"}</p>
           </div>
         )}
-
         <div className="mt-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Últimas Pesquisas</h2>
-          <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Histórico de Pesquisas</h2>
+          <table className="w-full bg-white border rounded-lg overflow-hidden">
             <thead className="bg-blue-600 text-white">
               <tr>
-                <th className="px-4 py-2 text-sm font-semibold">CEP</th>
-                <th className="px-4 py-2 text-sm font-semibold">Cidade</th>
-                <th className="px-4 py-2 text-sm font-semibold">Estado</th>
-                <th className="px-4 py-2 text-sm font-semibold">Temperatura</th>
-                <th className="px-4 py-2 text-sm font-semibold">Data da Pesquisa</th>
+                {[
+                  { key: "cep", label: "CEP" },
+                  { key: "location", label: "Cidade" },
+                  { key: "localState", label: "Estado" },
+                  { key: "temp", label: "Temperatura" },
+                  { key: "brFormat", label: "Data da Pesquisa" },
+                ].map(({ key, label }) => (
+                  <th
+                    key={key}
+                    className="px-4 py-2 text-left cursor-pointer"
+                    onClick={() => handleSort(key)}
+                  >
+                    {label} {sortConfig.key === key && (sortConfig.direction === "asc" ? "↑" : "↓")}
+                  </th>
+                ))}
               </tr>
             </thead>
-            <tbody className="text-sm text-gray-700">
-              {searchHistory.map((entry, index) => (
-                <tr key={index} className="border-b hover:bg-gray-50">
-                  <td className="px-4 py-3">{entry.cep}</td>
-                  <td className="px-4 py-3">{entry.location}</td>
-                  <td className="px-4 py-3">{entry.localState}</td>
-                  <td className="px-4 py-3">{Math.round(entry.temp)}°C</td>
-                  <td className="px-4 py-3">{entry.brFormat}</td>
+            <tbody>
+              {sortedHistory.length === 0 ? (
+                <tr>
+                  <td colSpan="5" className="text-center text-gray-500 py-4">
+                    Nenhuma pesquisa realizada.
+                  </td>
                 </tr>
-              ))}
+              ) : (
+                sortedHistory.map((entry, index) => (
+                  <tr
+                    key={index}
+                    className="border-b hover:bg-gray-100"
+                  >
+                    <td className="px-4 py-2">{entry.cep}</td>
+                    <td className="px-4 py-2">{entry.location}</td>
+                    <td className="px-4 py-2">{entry.localState}</td>
+                    <td className="px-4 py-2">{Math.round(entry.temp)}°C</td>
+                    <td className="px-4 py-2">{entry.brFormat}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
