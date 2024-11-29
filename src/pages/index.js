@@ -66,6 +66,9 @@ export default function Home() {
               <strong>Cidade: </strong> {address.location || "Não foi localizado"}
             </p>
             <p className="text-gray-700">
+              <strong>Estado: </strong> {address.localState || "Não foi localizado"}
+            </p>
+            <p className="text-gray-700">
               <strong>Temperatura: </strong> {Math.round(address.temp) || "Não foi localizado"}°C
             </p>
             <p className="text-gray-700">

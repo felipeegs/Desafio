@@ -47,7 +47,6 @@ export default async function handler(req, res) {
 
         const cepData = await fetchCepData(cep);
         const weatherData = await fetchWeatherData(cepData.localidade);
-
         const currentDate = new Date();
         const brFormat = currentDate.toLocaleString("pt-BR", {
             dateStyle: "short",
@@ -59,9 +58,8 @@ export default async function handler(req, res) {
             cep,
             location: cepData.localidade,
             temp: weatherData.main.temp,
+            localState: cepData.uf,
         };
-
-        console.log(responseObject);
 
 
         return res.status(200).json(responseObject);
