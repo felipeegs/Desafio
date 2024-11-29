@@ -70,7 +70,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center px-6 py-8">
-      <div className="bg-white shadow-lg rounded-lg p-8 max-w-xl w-full">
+      <div className="bg-white shadow-lg rounded-lg p-8 max-w-xl w-full sm:w-11/12 md:w-3/4 lg:w-1/2 xl:w-1/3">
         <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800 mb-6 text-center">Procurar Informações do CEP</h1>
 
         <div className="flex flex-col gap-6">
