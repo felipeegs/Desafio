@@ -39,7 +39,7 @@ export default function Home() {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
 
   useEffect(() => {
-    deleteCookie("searchHis")
+    deleteCookie("searchHistory")
     const history = JSON.parse(getCookie("searchHistory") || "[]");
     setSearchHistory(history);
   }, []);
